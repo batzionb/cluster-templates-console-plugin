@@ -22,7 +22,7 @@ import { UsersField, GroupsField } from './AccessFields';
 import getNewQuotaValidationSchema from './newQuotaValidationSchema';
 import BudgetField from './BudgetField';
 import Loader from '../../../helpers/Loader';
-import useCreateQuota from './useCreateQuota';
+import useCreateQuota from '../../../hooks/useCreateQuota';
 import { AlertsContextProvider } from '../../../alerts/AlertsContext';
 import Alerts from '../../../alerts/Alerts';
 import QuotaNamespaceField from './QuotaNamespaceField';

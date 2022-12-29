@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import find from 'lodash/find';
 
 export type AlertData = {
   title: string;
@@ -8,7 +9,7 @@ export type AlertData = {
 
 export type AlertsContextData = {
   alerts: AlertData[];
-  addAlert: (AlertData) => void;
+  addAlert: (alert: AlertData) => void;
 };
 
 const AlertsContext = React.createContext<AlertsContextData>(null);
@@ -18,7 +19,18 @@ export const AlertsContextProvider = ({ children }: { children: React.ReactNode 
 
   const addAlert = React.useCallback(
     (alert: AlertData) => {
-      setAlerts([...alerts, alert]);
+      const existing = find(alerts, (curAlert) =>
+        curAlert.title.localeCompare(alert.title) === 0 && curAlert.message
+          ? curAlert.message?.localeCompare(alert.message) === 0
+          : true,
+      );
+      if (alerts.length > 0) {
+        console.log('localcompare title', alerts[0].title?.localeCompare(alert.title));
+      }
+      console.log(alerts, existing, alert);
+      if (!existing) {
+        setAlerts([...alerts, alert]);
+      }
     },
     [alerts],
   );
