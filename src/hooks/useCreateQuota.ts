@@ -17,7 +17,7 @@ const getQuota = (values: NewQuotaFormikValues): Quota => {
     apiVersion: getApiVersion(clusterTemplateQuotaGVK),
     kind: clusterTemplateQuotaGVK.kind,
     metadata: {
-      name: values.name,
+      generateName: 'cluster-templates-rb-',
       namespace: values.namespace,
     },
     spec: {

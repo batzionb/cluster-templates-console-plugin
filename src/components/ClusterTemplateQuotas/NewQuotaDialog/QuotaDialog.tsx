@@ -2,7 +2,6 @@ import {
   Alert,
   AlertVariant,
   Button,
-  Form,
   Modal,
   ModalBoxBody,
   ModalBoxFooter,
@@ -17,18 +16,17 @@ import { useTranslation } from '../../../hooks/useTranslation';
 import { getErrorMessage } from '../../../utils/utils';
 import QuotaHelpText from '../QuotaHelpTexts';
 import { NewQuotaFormikValues } from '../types';
-import AccessFields from './AccessFields';
-import BudgetField from './BudgetField';
 import Loader from '../../../helpers/Loader';
-import useCreateQuota from '../../../hooks/useCreateQuota';
 import { AlertsContextProvider } from '../../../alerts/AlertsContext';
 import Alerts from '../../../alerts/Alerts';
-import QuotaNamespaceField from './QuotaNamespaceField';
 import './styles.css';
-import NameField from '../../sharedFields/NameField';
 import useNewQuotaValidationSchema from './newQuotaValidationSchema';
+import QuotaForm from './QuotaForm';
+import useSaveQuota from '../../../hooks/useSaveQuota';
+import { Quota } from '../../../types';
+import { useAddAlertOnError } from '../../../alerts/useAddAlertOnError';
 
-const getTitleText = (t: TFunction) => t('Create a new quota');
+const getTitleText = (t: TFunction) => t('Create a namespace');
 
 const Header = () => {
   const { t } = useTranslation();
@@ -40,51 +38,34 @@ const Header = () => {
 };
 
 const getInitialValues = (): NewQuotaFormikValues => ({
-  name: '',
   namespace: '',
   users: [],
   groups: [],
   hasBudget: false,
 });
 
-const NewQuotaFormFields = ({ clusterTemplateCost }: { clusterTemplateCost: number }) => {
-  const { t } = useTranslation();
-  const budgetHelpText = t(
-    'Enter the amount you wish to limit for this user/group. The minimum amount is {{cost}}.',
-    { cost: clusterTemplateCost },
-  );
-  return (
-    <Form className="new-quota-form">
-      <NameField name={'name'} label={t('Quota name')} />
-      <QuotaNamespaceField />
-      <BudgetField
-        budgetFieldName="budget"
-        hasBudgetFieldName="hasBudget"
-        label={t('Total budget of cluster consumption')}
-        popoverHelpText={budgetHelpText}
-      />
-      <AccessFields />
-    </Form>
-  );
-};
-
-const NewQuotaDialog = ({
+const QuotaDialog = ({
+  quota,
   closeDialog,
-  clusterTemplateCost,
+  onSave,
   isOpen,
 }: {
-  closeDialog: (quota?: { name: string; namespace: string }) => void;
-  clusterTemplateCost: number;
+  quota?: Quota;
+  closeDialog: () => void;
+  onSave: (namespace: string) => void;
   isOpen: boolean;
 }) => {
   const { t } = useTranslation();
-  const [createQuota, loaded] = useCreateQuota();
+  const [saveQuota, loaded, saveQuotaError] = useSaveQuota(quota);
+  // t('Failed to load dialog')
+  useAddAlertOnError(saveQuotaError, 'Failed to load dialog');
   const [error, setError] = React.useState<unknown>();
-  const validationSchema = useNewQuotaValidationSchema(clusterTemplateCost);
+  const validationSchema = useNewQuotaValidationSchema();
+
   const onSubmit = async (values: NewQuotaFormikValues) => {
     try {
-      await createQuota(values);
-      closeDialog({ name: values.name, namespace: values.namespace });
+      await saveQuota(values);
+      onSave(values.namespace);
     } catch (err) {
       setError(err);
     }
@@ -112,10 +93,14 @@ const NewQuotaDialog = ({
           {({ isSubmitting, handleSubmit }) => (
             <Loader loaded={loaded}>
               <ModalBoxBody>
-                <NewQuotaFormFields clusterTemplateCost={clusterTemplateCost} />
+                <QuotaForm disableNamespace={!!quota} />
                 <Alerts />
                 {!!error && (
-                  <Alert variant={AlertVariant.danger} title={t('Failed to create quota')} isInline>
+                  <Alert
+                    variant={AlertVariant.danger}
+                    title={t('Failed to create namespace')}
+                    isInline
+                  >
                     {getErrorMessage(error)}
                   </Alert>
                 )}
@@ -128,8 +113,9 @@ const NewQuotaDialog = ({
                   name="confirm"
                   onClick={() => handleSubmit()}
                   type="submit"
+                  isDisabled={!!saveQuotaError}
                 >
-                  {t('Create')}
+                  {t('Save')}
                 </Button>
 
                 <Button key="cancel" variant="link" onClick={onClose} data-test="cancel">
@@ -144,4 +130,4 @@ const NewQuotaDialog = ({
   );
 };
 
-export default NewQuotaDialog;
+export default QuotaDialog;

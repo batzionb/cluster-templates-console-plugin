@@ -2,14 +2,14 @@ import { Button, Form } from '@patternfly/react-core';
 // import { PlusIcon } from '@patternfly/react-icons';
 import { useFormikContext } from 'formik';
 import React from 'react';
-import SelectField, { SelectInputOption } from '../../../../helpers/SelectField';
-import { useTranslation } from '../../../../hooks/useTranslation';
-import NewQuotaDialog from '../../../ClusterTemplateQuotas/NewQuotaDialog/NewQuotaDialog';
-import { useQuotas } from '../../../../hooks/useQuotas';
-import { QuotaOptionObject, WizardFormikValues } from '../../types';
-import BudgetField from '../../../ClusterTemplateQuotas/NewQuotaDialog/BudgetField';
+import SelectField, { SelectInputOption } from '../../../helpers/SelectField';
+import { useTranslation } from '../../../hooks/useTranslation';
+import QuotaDialog from '../../ClusterTemplateQuotas/NewQuotaDialog/QuotaDialog';
+import { useQuotas } from '../../../hooks/useQuotas';
+import { QuotaOptionObject, WizardFormikValues } from '../../ClusterTemplateWizard/types';
+import BudgetField from '../../ClusterTemplateQuotas/NewQuotaDialog/BudgetField';
 import { PlusIcon } from '@patternfly/react-icons';
-import { useAddAlertOnError } from '../../../../alerts/useAddAlertOnError';
+import { useAddAlertOnError } from '../../../alerts/useAddAlertOnError';
 
 type QuotaCardProps = {
   quotaIdx: number;
@@ -23,7 +23,7 @@ const getQuotaOptionObject = (name: string, namespace: string): QuotaOptionObjec
 });
 
 const QuotaCard = ({ quotaIdx, fieldName }: QuotaCardProps) => {
-  const { values, setFieldValue } = useFormikContext<WizardFormikValues>();
+  const { setFieldValue } = useFormikContext<WizardFormikValues>();
   const quotaFieldName = `${fieldName}.quota`;
 
   const checkboxFieldName = `${fieldName}.limitAllowed`;
@@ -43,6 +43,8 @@ const QuotaCard = ({ quotaIdx, fieldName }: QuotaCardProps) => {
   }, [quotasContext, t]);
 
   const selectOptions = React.useMemo(() => getSelectOptions(), [getSelectOptions]);
+
+  const closeDialog = () => setNewQuotaDialogOpen(false);
 
   return (
     <>
@@ -73,15 +75,13 @@ const QuotaCard = ({ quotaIdx, fieldName }: QuotaCardProps) => {
           label={t('Limit the number of clusters created from this template')}
         />
       </Form>
-      <NewQuotaDialog
+      <QuotaDialog
         isOpen={newQuotaDialogOpen}
-        closeDialog={(quota?: { name: string; namespace: string }) => {
-          if (quota) {
-            setFieldValue(quotaFieldName, getQuotaOptionObject(quota.name, quota.namespace));
-          }
-          setNewQuotaDialogOpen(false);
+        onSave={(namespace: string) => {
+          setFieldValue(quotaFieldName, namespace);
+          closeDialog();
         }}
-        clusterTemplateCost={values.details.cost || 0}
+        closeDialog={closeDialog}
       />
     </>
   );

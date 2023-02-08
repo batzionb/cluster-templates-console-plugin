@@ -1,8 +1,10 @@
-import { Label } from '@patternfly/react-core';
+import { Button, Label } from '@patternfly/react-core';
+import { CheckIcon } from '@patternfly/react-icons';
 import * as React from 'react';
 import CellLoader from '../../helpers/CellLoader';
 
 import { useClusterTemplateInstances } from '../../hooks/useClusterTemplateInstances';
+import { useQuotas } from '../../hooks/useQuotas';
 import { useTranslation } from '../../hooks/useTranslation';
 import { ClusterTemplate, ClusterTemplateVendor } from '../../types';
 import { getClusterTemplateVendor } from '../../utils/clusterTemplateDataUtils';
@@ -66,3 +68,26 @@ export const PostInstallationDetails = ({
 export const InstallationDetails = ({ clusterTemplate }: { clusterTemplate: ClusterTemplate }) => (
   <ArgoCDSpecDetails argocdSpec={clusterTemplate.spec.clusterDefinition} />
 );
+
+export const ClusterTemplateStatus = ({
+  clusterTemplate,
+  onPublish,
+}: {
+  clusterTemplate: ClusterTemplate;
+  onPublish: () => void;
+}) => {
+  const { t } = useTranslation();
+  const [quotasApi, loaded, loadError] = useQuotas();
+  const quotas = quotasApi.getClusterTemplateQuotasDetails(clusterTemplate.metadata?.name || '');
+  const publishButton = <Button variant="link">{t('Publish')}</Button>;
+  const publishedStatus = (
+    <Button variant="plain" icon={<CheckIcon />} iconPosition="left" onClick={onPublish}>
+      {t('Published')}
+    </Button>
+  );
+  return (
+    <CellLoader loaded={loaded} error={loadError}>
+      {quotas.length ? publishedStatus : publishButton}
+    </CellLoader>
+  );
+};

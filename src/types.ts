@@ -211,9 +211,11 @@ export type QuotaDetails = {
   namespace: string;
   budget?: number;
   budgetSpent?: number;
-  numUsers: number;
-  numGroups: number;
+  users: string[];
+  groups: string[];
   uid: string;
+  templates: string[];
+  quota: Quota;
 };
 
 export type Group = K8sResourceCommon & { users?: string[] };

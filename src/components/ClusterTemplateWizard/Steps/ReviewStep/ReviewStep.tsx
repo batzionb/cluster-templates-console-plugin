@@ -29,10 +29,10 @@ import ErrorBoundary from '../../../../helpers/ErrorBoundary';
 
 export const getQuotaNameAndUsersText = (quotaDetails: QuotaDetails, t: TFunction) => {
   const users = t('{{count}} user', {
-    count: quotaDetails.numUsers,
+    count: quotaDetails.users.length,
   });
   const groups = t('{{count}} group', {
-    count: quotaDetails.numGroups,
+    count: quotaDetails.groups.length,
   });
   return `${quotaDetails.name}, (${users}, ${groups})`;
 };

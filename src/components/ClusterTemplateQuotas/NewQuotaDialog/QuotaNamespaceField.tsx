@@ -13,7 +13,7 @@ const getNamespaceOptions = (namespaces: string[]): SelectInputOption[] =>
       disabled: false,
     }));
 
-const QuotaNamespaceField = () => {
+const QuotaNamespaceField = ({ disabled }: { disabled: boolean }) => {
   const { t } = useTranslation();
   const [namespaces, namespacesLoaded, namespaceError] = useNamespaces();
   const options = React.useMemo(() => getNamespaceOptions(namespaces), [namespaces]);
@@ -36,6 +36,7 @@ const QuotaNamespaceField = () => {
       placeholderText={t('Enter a namespace')}
       isDisabled={!!namespaceError}
       loadingVariant={namespacesLoaded ? undefined : 'spinner'}
+      disabled={disabled}
     />
   );
 };

@@ -28,6 +28,7 @@ import TableLoader from '../../helpers/TableLoader';
 
 import {
   ClusterTemplateCost,
+  ClusterTemplateStatus,
   ClusterTemplateUsage,
 } from '../sharedDetailItems/clusterTemplateDetailItems';
 import { AlertsContextProvider } from '../../alerts/AlertsContext';
@@ -42,12 +43,16 @@ function getTableColumns(t: TFunction): TableColumn[] {
       id: 'name',
     },
     {
+      title: t('Instances'),
+      id: 'instances',
+    },
+    {
       title: t('Cost'),
       id: 'cost',
     },
     {
-      title: t('Template uses'),
-      id: 'usage',
+      title: t('Status'),
+      id: 'status',
     },
     {
       title: '',
@@ -86,12 +91,15 @@ export const ClusterTemplateRow: React.FC<RowProps<ClusterTemplate>> = ({ obj })
         />
       </Td>
       <Td data-testid={columns[1].id} dataLabel={columns[1].title}>
+        <ClusterTemplateUsage clusterTemplate={obj} />
+      </Td>
+      <Td data-testid={columns[2].id} dataLabel={columns[2].title}>
         <ClusterTemplateCost clusterTemplate={obj} />
       </Td>
       <Td data-testid={columns[2].id} dataLabel={columns[2].title}>
-        <ClusterTemplateUsage clusterTemplate={obj} />
+        <ClusterTemplateStatus clusterTemplate={obj} onPublish={() => console.log('publish')} />
       </Td>
-      <Td data-testid={columns[3].id} isActionCell>
+      <Td data-testid={columns[4].id} isActionCell>
         <ActionsColumn
           items={getRowActions()}
           actionsToggle={(props: CustomActionsToggleProps) => <KebabToggle {...props} />}
