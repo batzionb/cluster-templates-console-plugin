@@ -13,6 +13,8 @@ import { useArgoCDSecretsCount } from '../../hooks/useArgoCDSecrets';
 import useDialogsReducer from '../../hooks/useDialogsReducer';
 import NewRepositoryDialog from '../HelmRepositories/NewRepositoryDialog';
 import { AlertsContextProvider } from '../../alerts/AlertsContext';
+import QuotasTab from './QuotasTab';
+import { useQuotasCount } from '../../hooks/useQuotas';
 
 type ActionDialogIds = 'newRepositoryDialog';
 const actionDialogIds: ActionDialogIds[] = ['newRepositoryDialog'];
@@ -21,7 +23,8 @@ const useActiveTab = () => {
   const { search } = useLocation();
   const activeTab = React.useMemo(() => {
     const query = new URLSearchParams(search);
-    return query.get('tab') === 'repositories' ? 'repositories' : 'templates';
+    const tab = query.get('tab');
+    return tab ? tab : 'cluster-templates';
   }, [search]);
   return activeTab;
 };
@@ -32,6 +35,7 @@ const ClusterTemplatesPage = () => {
   const templatesCount = useClusterTemplatesCount();
   const argoCDSecretsCount = useArgoCDSecretsCount();
   const activeTab = useActiveTab();
+  const quotasCount = useQuotasCount();
   const { openDialog, closeDialog, isDialogOpen } = useDialogsReducer(actionDialogIds);
 
   const actionItems = React.useMemo(
@@ -46,6 +50,9 @@ const ClusterTemplatesPage = () => {
     switch (eventKey) {
       case 'repositories':
         history.push(`${getResourceUrl(clusterTemplateGVK)}?tab=repositories`);
+        break;
+      case 'quotas':
+        history.push(`${getResourceUrl(clusterTemplateGVK)}?tab=quotas`);
         break;
       default:
         history.push(getResourceUrl(clusterTemplateGVK));
@@ -96,12 +103,19 @@ const ClusterTemplatesPage = () => {
             }
             aria-label="Repositories tab"
           />
+          <Tab
+            eventKey="quotas"
+            title={
+              <TabTitleText>{getNavLabelWithCount('Access management', quotasCount)}</TabTitleText>
+            }
+            aria-label="Access management"
+          />
         </Tabs>
-        {activeTab === 'repositories' ? (
+        {activeTab === 'cluster-templates' && <ClusterTemplatesTab />}
+        {activeTab === 'repositories' && (
           <RepositoriesTab openNewRepositoryDialog={() => openDialog('newRepositoryDialog')} />
-        ) : (
-          <ClusterTemplatesTab />
         )}
+        {activeTab === 'quotas' && <QuotasTab />}
         {isDialogOpen('newRepositoryDialog') && (
           <NewRepositoryDialog closeDialog={() => closeDialog('newRepositoryDialog')} />
         )}

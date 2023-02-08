@@ -16,7 +16,6 @@ import TemplateDetailsStep from './Steps/TemplateDetailsStep/TemplateDetailsStep
 import { getErrorMessage } from '../../utils/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import Loader from '../../helpers/Loader';
-import ManageQuotasStep from './Steps/ManageQuotasStep/ManageQuotasStep';
 import Alerts from '../../alerts/Alerts';
 import { AlertsContextProvider } from '../../alerts/AlertsContext';
 import InstallationSettingsStep from './Steps/InstallationSettingsStep/InstallationSettingsStep';
@@ -160,16 +159,10 @@ const _ClusterTemplateWizard = ({ clusterTemplate }: ClusterTemplateWizardProps)
       canJumpTo: activeStepIndex >= 2,
     },
     {
-      name: t('Manage quotas'),
-      component: <ManageQuotasStep />,
-      id: StepId.QUOTAS,
-      canJumpTo: activeStepIndex >= 3,
-    },
-    {
       name: t('Review'),
       component: reviewStep,
       id: StepId.REVIEW,
-      canJumpTo: activeStepIndex === 4,
+      canJumpTo: activeStepIndex === 3,
     },
   ];
 

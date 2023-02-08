@@ -12,7 +12,7 @@ export const useAllQuotas = (): [Quota[], boolean, unknown] =>
     namespaced: true,
   });
 
-const useClusterTemplateRoleBindings = (): ReturnType<
+export const useClusterTemplateRoleBindings = (): ReturnType<
   typeof useK8sWatchResource<RoleBinding[]>
 > => {
   const [rbs, loaded, error] = useK8sWatchResource<RoleBinding[]>({
@@ -35,30 +35,30 @@ export type QuotasData = {
   getQuotaDetails: (quotaName: string, quotaNamespace: string) => QuotaDetails | undefined;
 };
 
+const getRbSubjectNames = (rb: RoleBinding, kind: 'User' | 'Group'): string[] =>
+  (rb.subjects?.filter((subject) => subject.kind === kind) || []).map((subject) => subject.name);
+
 const getDetails = (quota: Quota, rbs: RoleBinding[]): QuotaDetails => {
   const quotaRbs = rbs.filter((rb) => rb.metadata?.namespace === quota.metadata?.namespace);
-  let numUsers = 0;
-  let numGroups = 0;
-  for (const rb of quotaRbs) {
-    if (!rb.subjects) {
-      continue;
-    }
-    for (const subject of rb.subjects) {
-      if (subject.kind === 'Group') {
-        numGroups++;
-      } else if (subject.kind === 'User') {
-        numUsers++;
-      }
-    }
-  }
+
+  const groupNames = quotaRbs.reduce<string[]>(
+    (prevGroupNames, quotaRb) => [...prevGroupNames, ...getRbSubjectNames(quotaRb, 'Group')],
+    [],
+  );
+  const userNames = quotaRbs.reduce<string[]>(
+    (prevUserNames, quotaRb) => [...prevUserNames, ...getRbSubjectNames(quotaRb, 'User')],
+    [],
+  );
+
   return {
     name: quota.metadata?.name || '',
     namespace: quota.metadata?.namespace || '',
     budget: quota.spec?.budget,
     budgetSpent: quota.status?.budgetSpent,
     uid: quota.metadata?.uid || '',
-    numGroups,
-    numUsers,
+    groups: groupNames,
+    users: userNames,
+    templates: quota.spec?.allowedTemplates?.map((template) => template.name) || [],
   };
 };
 
@@ -101,4 +101,9 @@ export const useQuotas = (): [QuotasData, boolean, unknown] => {
     };
   }, [allQuotas, rbs, quotasModel]);
   return [data, loaded && !quotasModelLoading, error || quotasError];
+};
+
+export const useQuotasCount = () => {
+  const [quotas, loaded, loadError] = useAllQuotas();
+  return quotas && loaded && !loadError ? quotas.length : undefined;
 };
