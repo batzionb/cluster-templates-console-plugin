@@ -17,10 +17,7 @@ import CellLoader from '../../helpers/CellLoader';
 import { ArgoCDSecretData, RepositoryType } from '../../types/resourceTypes';
 import { useArgoCDSecrets } from '../../hooks/useArgoCDSecrets';
 import { useAddAlertOnError } from '../../alerts/useAddAlertOnError';
-<<<<<<< HEAD
 import { humanizeUrl } from '../../utils/humanizing';
-=======
->>>>>>> 65a4f5c (git repo)
 
 type HelmRepositoryFieldProps = {
   fieldName: string;
@@ -130,11 +127,7 @@ const RepositoryField = ({
       {newRepositoryDialogOpen && (
         <NewRepositoryDialog
           closeDialog={() => setNewRepositoryDialogOpen(false)}
-<<<<<<< HEAD
           afterCreate={onNewRepoCreated}
-=======
-          onCreate={onNewRepoCreated}
->>>>>>> 65a4f5c (git repo)
           predefinedType={type}
         />
       )}

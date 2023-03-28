@@ -51,14 +51,16 @@ export type HelmChartSchema = {
   };
 };
 
+export type ClusterTemplateSetupStatus = {
+  name: string;
+  values?: string;
+}[];
+
 export type ClusterTemplateStatus = {
   clusterDefinition: {
     values?: string;
   };
-  clusterSetup?: {
-    name: string;
-    values?: string;
-  }[];
+  clusterSetup?: ClusterTemplateSetupStatus;
 };
 
 export type ClusterSetup = {
@@ -101,7 +103,7 @@ export enum ClusterTemplateInstanceStatusPhase {
   Failed = 'Failed',
 }
 
-export type ClusterTemplateInstancePropertyValue = {
+export type ClusterTemplateInstanceParameter = {
   clusterSetup?: string;
   name: string;
   value: unknown;
@@ -110,7 +112,7 @@ export type ClusterTemplateInstancePropertyValue = {
 export type ClusterTemplateInstance = K8sResourceCommon & {
   spec: {
     clusterTemplateRef: string;
-    parameters?: ClusterTemplateInstancePropertyValue[];
+    parameters?: ClusterTemplateInstanceParameter[];
   };
   status?: {
     phase?: ClusterTemplateInstanceStatusPhase;

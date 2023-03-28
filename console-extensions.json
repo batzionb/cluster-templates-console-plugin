@@ -116,14 +116,12 @@
     }
   },
   {
-    "type": "console.navigation/href",
+    "type": "console.page/route",
     "properties": {
-      "id": "admin-cluster-templates-console",
-      "perspective": "admin",
-      "section": "compute",
-      "name": "%plugin__clustertemplates-plugin~Cluster templates%",
-      "href": "/k8s/cluster/clustertemplate.openshift.io~v1alpha1~ClusterTemplate",
-      "insertAfter": "nodes"
+      "path": [
+        "/k8s/cluster/clustertemplate.openshift.io~v1alpha1~ClusterTemplate/:name/~newinstance"
+      ],
+      "component": { "$codeRef": "createInstance.default" }
     },
     "flags": {
       "required": ["CLUSTER_TEMPLATES_FLAG"]
