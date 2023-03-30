@@ -4,14 +4,13 @@ metadata:
   name: class-config-map-template
 objects:
   - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: cluster-aas-operator
+  - apiVersion: v1
     kind: ConfigMap
     metadata:
       name: claas-config
       namespace: cluster-aas-operator
     data:  
       argocd-ns: argocd
-      enable-ui: 'true'
-      ui-image: ${IMAGE}
-parameters:
-  - description: UI plugin image
-    name: IMAGE

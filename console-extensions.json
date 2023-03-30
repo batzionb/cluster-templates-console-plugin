@@ -53,8 +53,7 @@
       }
     },
     "flags": {
-      "required": ["CLUSTER_TEMPLATES_FLAG"],
-      "disallowed": ["MCE_FLAG"]
+      "required": ["CLUSTER_TEMPLATES_FLAG"]
     }
   },
   {

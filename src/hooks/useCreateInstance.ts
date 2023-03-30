@@ -45,6 +45,7 @@ const toInstance = (
 const useCreateInstance = (
   template: ClusterTemplate,
 ): [(values: InstanceFormValues) => Promise<ClusterTemplateInstance>, boolean] => {
+  console.log(template, template.status?.clusterDefinition);
   const [instancesModel, loadingModel] = useK8sModel(clusterTemplateInstanceGVK);
   const create = React.useCallback(
     async (values: InstanceFormValues) => {

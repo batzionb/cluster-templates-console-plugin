@@ -1,4 +1,5 @@
 import { ArgoCDSpec } from './resourceTypes';
+import { JSONSchema7 } from 'json-schema';
 
 type PrimitiveValue = 'string' | 'boolean' | 'number';
 
@@ -24,4 +25,5 @@ export type InstanceFormValues = {
   installation: Omit<InstanceParametersFormValues, 'name'>;
   postInstallation: InstanceParametersFormValues[];
   hasUnsupportedParameters: boolean;
+  schema?: JSONSchema7;
 };

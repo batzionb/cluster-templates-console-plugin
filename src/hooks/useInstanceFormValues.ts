@@ -7,7 +7,7 @@ import {
   isPrimitiveValue,
 } from '../types/instanceFormTypes';
 import { ClusterTemplate, ClusterTemplateSetupStatus } from '../types/resourceTypes';
-
+import { JSONSchema7 } from 'json-schema';
 export const useInstanceFormValues = (
   templateLoadResult: [ClusterTemplate, boolean, unknown],
 ): [InstanceFormValues | undefined, unknown] => {
@@ -18,14 +18,18 @@ export const useInstanceFormValues = (
 
   React.useEffect(() => {
     let hasUnsupportedParameters = false;
-    const getParameters = (name: string, valuesStr?: string): InstanceParameter[] => {
+    const getParameters = (
+      name: string,
+      valuesStr?: string,
+      schema?: JSONSchema7,
+    ): InstanceParameter[] => {
       try {
-        if (!valuesStr) {
+        if (!valuesStr && !schema) {
           return [];
         }
-        const valuesObject = load(valuesStr) as Record<string, unknown>;
-        if (!valuesObject) {
-          return [];
+        let valuesObject = {};
+        if (valuesStr) {
+          valuesObject = load(valuesStr) as Record<string, unknown>;
         }
         const parameters: InstanceParameter[] = [];
         for (const [name, value] of Object.entries(valuesObject)) {
@@ -35,7 +39,6 @@ export const useInstanceFormValues = (
             parameters.push({ name, value, defaultValue: value });
           }
         }
-        console.log(name, parameters);
         return parameters.sort((param1, param2) => param1.name.localeCompare(param2.name));
       } catch (err) {
         throw new Error(`Failed to parse cluster template status values of ${name}`);
@@ -46,6 +49,7 @@ export const useInstanceFormValues = (
       template: ClusterTemplate,
       name: string,
       values?: string,
+      schema?: string,
     ): InstanceParametersFormValues | undefined => {
       if (!values) {
         return undefined;

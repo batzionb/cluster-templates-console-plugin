@@ -54,11 +54,13 @@ export type HelmChartSchema = {
 export type ClusterTemplateSetupStatus = {
   name: string;
   values?: string;
+  schema?: string;
 }[];
 
 export type ClusterTemplateStatus = {
   clusterDefinition: {
     values?: string;
+    schema?: string;
   };
   clusterSetup?: ClusterTemplateSetupStatus;
 };
