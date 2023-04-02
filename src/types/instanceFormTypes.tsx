@@ -20,19 +20,22 @@ export const isSupportedJson7SchemaType = (
   }
 };
 
-export type PrimitiveValue = string | boolean | number;
+export type PrimitiveValue = string | boolean | number | undefined | null;
 
 export const isPrimitiveValue = (value: unknown): value is PrimitiveValue => {
-  return ['string', 'boolean', 'number'].includes(typeof value);
+  return (
+    value === undefined || value === null || ['string', 'boolean', 'number'].includes(typeof value)
+  );
 };
 
 export type InstanceParameter = {
   name: string;
-  value: PrimitiveValue | undefined;
+  value: PrimitiveValue;
   required: boolean;
   type: SupportedJsonSchemaType;
   description?: string;
   title?: string;
+  default: PrimitiveValue;
 };
 
 export type InstanceParametersFormValues = {

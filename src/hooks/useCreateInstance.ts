@@ -8,6 +8,15 @@ import {
 import { getApiVersion } from '../utils/k8s';
 import React from 'react';
 import { InstanceFormValues, InstanceParameter } from '../types/instanceFormTypes';
+import { useCreateNamespace } from './useCreateNamespace';
+
+const toInstanceParameters = (
+  formParameters: InstanceParameter[],
+  clusterSetup?: string,
+): ClusterTemplateInstanceParameter[] =>
+  formParameters
+    .filter((param) => param.default !== param.value)
+    .map((param) => ({ name: param.name, value: param.value, clusterSetup }));
 
 const getInstanceParameters = (
   instanceFormValues: InstanceFormValues,
@@ -15,14 +24,9 @@ const getInstanceParameters = (
   return instanceFormValues.postInstallation.reduce<ClusterTemplateInstanceParameter[]>(
     (prevVal, postInstallationItem): ClusterTemplateInstanceParameter[] => [
       ...prevVal,
-      ...postInstallationItem.parameters.map(
-        (param: InstanceParameter): ClusterTemplateInstanceParameter => ({
-          ...param,
-          clusterSetup: postInstallationItem.name,
-        }),
-      ),
+      ...toInstanceParameters(postInstallationItem.parameters, postInstallationItem.name),
     ],
-    instanceFormValues.installation.parameters as ClusterTemplateInstanceParameter[],
+    toInstanceParameters(instanceFormValues.installation.parameters),
   );
 };
 
@@ -45,18 +49,19 @@ const toInstance = (
 const useCreateInstance = (
   template: ClusterTemplate,
 ): [(values: InstanceFormValues) => Promise<ClusterTemplateInstance>, boolean] => {
-  console.log(template, template.status?.clusterDefinition);
   const [instancesModel, loadingModel] = useK8sModel(clusterTemplateInstanceGVK);
+  const [createNamespace, createNamespaceLoaded] = useCreateNamespace();
   const create = React.useCallback(
     async (values: InstanceFormValues) => {
+      await createNamespace(values.namespace);
       return await k8sCreate({
         model: instancesModel,
         data: toInstance(values, template),
       });
     },
-    [instancesModel, template],
+    [instancesModel, template, createNamespace],
   );
-  return [create, !loadingModel];
+  return [create, !loadingModel && createNamespaceLoaded];
 };
 
 export default useCreateInstance;

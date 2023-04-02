@@ -58,7 +58,7 @@ export type ClusterTemplateSetupStatus = {
 }[];
 
 export type ClusterTemplateStatus = {
-  clusterDefinition: {
+  clusterDefinition?: {
     values?: string;
     schema?: string;
   };

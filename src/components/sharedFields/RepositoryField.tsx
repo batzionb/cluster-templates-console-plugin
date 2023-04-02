@@ -41,25 +41,31 @@ const RepositoryField = ({
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const [repos, loaded, reposLoadError] = useArgoCDSecrets();
   const [newRepositoryDialogOpen, setNewRepositoryDialogOpen] = React.useState(false);
+  const [selectedRepoName, setSelectedRepoName] = React.useState<string>('');
   // t('Failed to load repository secrets')
   useAddAlertOnError(reposLoadError, 'Failed to load repository Secrets');
   const errorMsg = formError || error;
-  const selectedRepo = url ? repos.find((repo) => repo.data.url === url) : undefined;
 
   React.useEffect(() => {
-    if (loaded && url && !selectedRepo) {
-      // t('Failed to find the selected repository')
-      addAlert({
-        title: 'Failed to find the selected repository',
-        message: `Failed to find a Secret matching the label argocd.argoproj.io/secret-type for accessing URL ${humanizeUrl(
-          url,
-        )}. Use 'Add a repository' to create a Secret with this URL`,
-      });
-      setValue('');
+    if (loaded && url && !selectedRepoName) {
+      const repo = repos.find((repo) => repo.data.url === url);
+      if (!repo) {
+        // t('Failed to find the selected repository')
+        addAlert({
+          title: 'Failed to find the selected repository',
+          message: `Failed to find a Secret matching the label argocd.argoproj.io/secret-type for accessing URL ${humanizeUrl(
+            url,
+          )}. Use 'Add a repository' to create a Secret with this URL`,
+        });
+        setValue('');
+      } else {
+        setSelectedRepoName(repo.data.name || '');
+      }
     }
-  }, [addAlert, loaded, selectedRepo, setValue, url]);
+  }, [addAlert, loaded, selectedRepoName, setValue, url, setSelectedRepoName, repos]);
 
   const onNewRepoCreated = (argoCDSecretData: ArgoCDSecretData) => {
+    setSelectedRepoName(argoCDSecretData.name || '');
     setValue(argoCDSecretData.url || '', true);
   };
 
@@ -101,7 +107,7 @@ const RepositoryField = ({
           onToggle={() => setIsOpen(!isOpen)}
           onSelect={onSelect}
           isOpen={isOpen}
-          selections={selectedRepo ? selectedRepo.data.name : ''}
+          selections={selectedRepoName}
           typeAheadAriaLabel={t('Type a repository name')}
           placeholderText={t('Select a repository')}
           toggleId={fieldName}

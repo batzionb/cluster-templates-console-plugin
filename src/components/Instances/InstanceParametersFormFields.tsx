@@ -18,13 +18,15 @@ const SectionTitle = ({ title, argoSpec }: { title: string; argoSpec: ArgoCDSpec
 );
 
 const InstanceParameterField = ({ fieldName }: { fieldName: string }) => {
-  const [field] = useField<InstanceParameter>(fieldName);
+  const [{ value }] = useField<InstanceParameter>(fieldName);
   const props: FieldProps & { fieldId: string } = {
     name: `${fieldName}.value`,
-    label: field.value.title,
+    label: value.title,
     fieldId: fieldName,
+    isRequired: value.required,
+    helperText: value.description,
   };
-  switch (field.value.type) {
+  switch (value.type) {
     case 'number':
       return <InputField {...props} type={TextInputTypes.number} />;
     case 'string':
@@ -34,7 +36,7 @@ const InstanceParameterField = ({ fieldName }: { fieldName: string }) => {
     case 'integer':
       return <NumberSpinnerField {...props} />;
     default:
-      throw `Unsupported parameter type ${field.value.type}`;
+      throw `Unsupported parameter type ${value.type}`;
   }
 };
 

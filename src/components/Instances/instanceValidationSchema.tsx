@@ -26,6 +26,7 @@ const useInstanceValidationSchema = (): SchemaOf<InstanceFormValues> => {
         title: stringSchema().required(),
         description: stringSchema(),
         type: mixedSchema(),
+        default: mixedSchema(),
       }),
     );
 

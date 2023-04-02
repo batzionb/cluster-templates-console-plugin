@@ -13,7 +13,14 @@ const OverviewTab: React.FC<{
   return (
     <Stack hasGutter>
       <StackItem isFilled>
-        <Flex className="pf-u-h-100">
+        <Card className="pf-u-h-100">
+          <CardHeader>
+            <CardTitle>{t('Getting started')}</CardTitle>
+          </CardHeader>
+        </Card>
+      </StackItem>
+      <StackItem isFilled>
+        <Flex className="pf-u-h-100" flex={{ default: 'flex_2' }}>
           <Card className="pf-u-h-100">
             <CardHeader>
               <CardTitle>{t('Details')}</CardTitle>

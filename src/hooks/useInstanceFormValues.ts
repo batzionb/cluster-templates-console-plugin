@@ -11,6 +11,8 @@ import {
 import { ClusterTemplate, ClusterTemplateSetupStatus } from '../types/resourceTypes';
 import { JSONSchema7 } from 'json-schema';
 
+type ValuesObj = Record<string, unknown>;
+
 export const useInstanceFormValues = (
   templateLoadResult: [ClusterTemplate, boolean, unknown],
 ): [InstanceFormValues | undefined, unknown] => {
@@ -22,21 +24,16 @@ export const useInstanceFormValues = (
   React.useEffect(() => {
     let hasUnsupportedParameters = false;
 
-    const getParametersFromSchema = (schema: string, valuesStr?: string) => {
+    const getParametersFromSchema = (schema: string, values: ValuesObj) => {
       const parameters: InstanceParameter[] = [];
-      const values = valuesStr ? (load(valuesStr) as object) : {};
       const jsonSchema = load(schema) as JSONSchema7;
       for (const [key, paramSchema] of Object.entries(jsonSchema.properties || {})) {
         if (typeof paramSchema === 'boolean') {
           // there's no use case for this
           continue;
         }
-        if (!isSupportedJson7SchemaType(paramSchema.type)) {
-          hasUnsupportedParameters = true;
-          continue;
-        }
         const value: unknown = values[key] ? values[key] : paramSchema.default;
-        if (!isPrimitiveValue(value)) {
+        if (!isSupportedJson7SchemaType(paramSchema.type) || !isPrimitiveValue(value)) {
           hasUnsupportedParameters = true;
           continue;
         } else {
@@ -45,36 +42,33 @@ export const useInstanceFormValues = (
             value,
             required: jsonSchema.required?.includes(key) || false,
             type: paramSchema.type || SupportedJsonSchemaType.STRING,
-            description: jsonSchema.description,
+            description: paramSchema.description,
             title: paramSchema.title || key,
+            default: value,
           });
         }
       }
       return parameters;
     };
 
-    const getParametersFromValues = (valuesStr?: string): InstanceParameter[] => {
-      if (!valuesStr) {
-        return [];
-      }
-      let valuesObject = {};
-      if (valuesStr) {
-        valuesObject = load(valuesStr) as Record<string, unknown>;
-      }
+    const getParametersFromValues = (values: ValuesObj): InstanceParameter[] => {
       const parameters: InstanceParameter[] = [];
-      for (const [name, value] of Object.entries(valuesObject)) {
+      for (const [name, value] of Object.entries(values)) {
         if (!isPrimitiveValue(value)) {
           hasUnsupportedParameters = true;
         } else {
           const type = typeof value as SupportedJsonSchemaType;
-          parameters.push({ name, value, type, required: false, title: name });
+          parameters.push({ name, value, type, required: false, title: name, default: value });
         }
       }
       return parameters.sort((param1, param2) => param1.name.localeCompare(param2.name));
     };
 
-    const getParameters = (values?: string, schema?: string): InstanceParameter[] => {
-      return schema ? getParametersFromSchema(schema, values) : getParametersFromValues(values);
+    const getParameters = (valuesStr?: string, schemaStr?: string): InstanceParameter[] => {
+      const values = valuesStr ? (load(valuesStr) as Record<string, unknown>) : {};
+      return schemaStr
+        ? getParametersFromSchema(schemaStr, values)
+        : getParametersFromValues(values);
     };
 
     const getPostInstallationItemFormValues = (
@@ -120,7 +114,10 @@ export const useInstanceFormValues = (
         namespace: '',
         installation: {
           parameters: template.status?.clusterDefinition
-            ? getParameters('installation', template.status?.clusterDefinition.values)
+            ? getParameters(
+                template.status?.clusterDefinition?.values,
+                template.status?.clusterDefinition?.schema,
+              )
             : [],
           argoSpec: template.spec.clusterDefinition,
         },
