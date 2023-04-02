@@ -17,6 +17,7 @@ export type InstanceParametersFormValues = {
   name: string;
   argoSpec: ArgoCDSpec;
   parameters: InstanceParameter[];
+  schema?: JSONSchema7;
 };
 
 export type InstanceFormValues = {
@@ -25,5 +26,4 @@ export type InstanceFormValues = {
   installation: Omit<InstanceParametersFormValues, 'name'>;
   postInstallation: InstanceParametersFormValues[];
   hasUnsupportedParameters: boolean;
-  schema?: JSONSchema7;
 };

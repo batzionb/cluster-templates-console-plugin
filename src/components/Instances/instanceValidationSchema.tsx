@@ -15,7 +15,7 @@ import { nameSchema } from '../../utils/commonValidationSchemas';
 const useInstanceValidationSchema = (): SchemaOf<InstanceFormValues> => {
   const { t } = useTranslation();
 
-  const validationSchema: SchemaOf<InstanceFormValues> | undefined = React.useMemo(() => {
+  const validationSchema: SchemaOf<InstanceFormValues> = React.useMemo(() => {
     const requiredMsg = t('Required');
 
     const parametersSchema: SchemaOf<InstanceParameter[]> = arraySchema().of(
@@ -34,12 +34,14 @@ const useInstanceValidationSchema = (): SchemaOf<InstanceFormValues> => {
       installation: objectSchema().shape({
         argoSpec: argoSchema,
         parameters: parametersSchema,
+        schema: objectSchema(),
       }),
       postInstallation: arraySchema().of(
         objectSchema().shape({
           name: stringSchema().required(),
           argoSpec: argoSchema,
           parameters: parametersSchema,
+          schema: objectSchema(),
         }),
       ),
       hasUnsupportedParameters: booleanSchema().required(),

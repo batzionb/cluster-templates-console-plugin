@@ -8,6 +8,7 @@ import {
 } from '../types/instanceFormTypes';
 import { ClusterTemplate, ClusterTemplateSetupStatus } from '../types/resourceTypes';
 import { JSONSchema7 } from 'json-schema';
+
 export const useInstanceFormValues = (
   templateLoadResult: [ClusterTemplate, boolean, unknown],
 ): [InstanceFormValues | undefined, unknown] => {
@@ -18,13 +19,9 @@ export const useInstanceFormValues = (
 
   React.useEffect(() => {
     let hasUnsupportedParameters = false;
-    const getParameters = (
-      name: string,
-      valuesStr?: string,
-      schema?: JSONSchema7,
-    ): InstanceParameter[] => {
+    const getParameters = (name: string, valuesStr?: string): InstanceParameter[] => {
       try {
-        if (!valuesStr && !schema) {
+        if (!valuesStr) {
           return [];
         }
         let valuesObject = {};
@@ -64,6 +61,7 @@ export const useInstanceFormValues = (
         parameters: getParameters(name, values),
         argoSpec: clusterSetupSpec.spec,
         name: name,
+        schema: schema ? (load(schema) as JSONSchema7) : undefined,
       };
     };
 
@@ -89,6 +87,9 @@ export const useInstanceFormValues = (
             ? getParameters('installation', template.status?.clusterDefinition.values)
             : [],
           argoSpec: template.spec.clusterDefinition,
+          schema: template.status?.clusterDefinition?.schema
+            ? (load(template.status?.clusterDefinition?.schema) as JSONSchema7)
+            : undefined,
         },
         postInstallation: template.status?.clusterSetup
           ? getPostInstallationFormValues(template, template.status?.clusterSetup)
@@ -100,6 +101,7 @@ export const useInstanceFormValues = (
       if (!loaded || templateLoadError || formValues) {
         return;
       }
+      console.log(template);
       const _formValues = toInstanceFormValues(template);
       console.log(_formValues);
       setFormValues(_formValues);

@@ -1,4 +1,4 @@
-import { Flex, FlexItem } from '@patternfly/react-core';
+import { Flex, FlexItem, TextInputTypes } from '@patternfly/react-core';
 import { useField } from 'formik';
 import { InputField } from 'formik-pf';
 import React from 'react';
@@ -24,16 +24,24 @@ const InstanceParametersFormFields = ({
   title: string;
 }) => {
   const [field] = useField<InstanceParametersFormValues>(fieldName);
-  console.log(fieldName, field.value.parameters);
+
   if (field.value.parameters.length === 0) {
     return null;
   }
-  console.log('adding form section');
+
   return (
     <FormSection title={<SectionTitle title={title} argoSpec={field.value.argoSpec} />}>
       {field.value.parameters.map((param, idx) => {
         const name = `${fieldName}.parameters[${idx}]`;
-        return <InputField key={name} name={`${name}.value`} label={param.name} fieldId={name} />;
+        return (
+          <InputField
+            key={name}
+            name={`${name}.value`}
+            label={param.name}
+            fieldId={name}
+            type={TextInputTypes.number}
+          />
+        );
       })}
     </FormSection>
   );
