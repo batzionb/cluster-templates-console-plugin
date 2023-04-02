@@ -5,9 +5,12 @@ import {
   InstanceParametersFormValues,
   InstanceParameter,
   isPrimitiveValue,
+  SupportedJsonSchemaType,
+  isSupportedJson7SchemaType,
 } from '../types/instanceFormTypes';
 import { ClusterTemplate, ClusterTemplateSetupStatus } from '../types/resourceTypes';
 import { JSONSchema7 } from 'json-schema';
+
 export const useInstanceFormValues = (
   templateLoadResult: [ClusterTemplate, boolean, unknown],
 ): [InstanceFormValues | undefined, unknown] => {
@@ -18,31 +21,60 @@ export const useInstanceFormValues = (
 
   React.useEffect(() => {
     let hasUnsupportedParameters = false;
-    const getParameters = (
-      name: string,
-      valuesStr?: string,
-      schema?: JSONSchema7,
-    ): InstanceParameter[] => {
-      try {
-        if (!valuesStr && !schema) {
-          return [];
+
+    const getParametersFromSchema = (schema: string, valuesStr?: string) => {
+      const parameters: InstanceParameter[] = [];
+      const values = valuesStr ? (load(valuesStr) as object) : {};
+      const jsonSchema = load(schema) as JSONSchema7;
+      for (const [key, paramSchema] of Object.entries(jsonSchema.properties || {})) {
+        if (typeof paramSchema === 'boolean') {
+          // there's no use case for this
+          continue;
         }
-        let valuesObject = {};
-        if (valuesStr) {
-          valuesObject = load(valuesStr) as Record<string, unknown>;
+        if (!isSupportedJson7SchemaType(paramSchema.type)) {
+          hasUnsupportedParameters = true;
+          continue;
         }
-        const parameters: InstanceParameter[] = [];
-        for (const [name, value] of Object.entries(valuesObject)) {
-          if (!isPrimitiveValue(value)) {
-            hasUnsupportedParameters = true;
-          } else {
-            parameters.push({ name, value, defaultValue: value });
-          }
+        const value: unknown = values[key] ? values[key] : paramSchema.default;
+        if (!isPrimitiveValue(value)) {
+          hasUnsupportedParameters = true;
+          continue;
+        } else {
+          parameters.push({
+            name: key,
+            value,
+            required: jsonSchema.required?.includes(key) || false,
+            type: paramSchema.type || SupportedJsonSchemaType.STRING,
+            description: jsonSchema.description,
+            title: paramSchema.title || key,
+          });
         }
-        return parameters.sort((param1, param2) => param1.name.localeCompare(param2.name));
-      } catch (err) {
-        throw new Error(`Failed to parse cluster template status values of ${name}`);
       }
+      return parameters;
+    };
+
+    const getParametersFromValues = (valuesStr?: string): InstanceParameter[] => {
+      if (!valuesStr) {
+        return [];
+      }
+      let valuesObject = {};
+      if (valuesStr) {
+        valuesObject = load(valuesStr) as Record<string, unknown>;
+      }
+      const parameters: InstanceParameter[] = [];
+      for (const [name, value] of Object.entries(valuesObject)) {
+        if (!isPrimitiveValue(value)) {
+          hasUnsupportedParameters = true;
+        } else {
+          const type = typeof value as SupportedJsonSchemaType;
+          parameters.push({ name, value, type, required: false, title: name });
+        }
+      }
+      return parameters.sort((param1, param2) => param1.name.localeCompare(param2.name));
+    };
+
+    const getParameters = (values?: string, schema?: string): InstanceParameter[] => {
+      return schema ? getParametersFromSchema(schema, values) : getParametersFromValues(values);
     };
 
     const getPostInstallationItemFormValues = (
@@ -50,10 +82,7 @@ export const useInstanceFormValues = (
       name: string,
       values?: string,
       schema?: string,
-    ): InstanceParametersFormValues | undefined => {
-      if (!values) {
-        return undefined;
-      }
+    ) => {
       const clusterSetupSpec = template.spec.clusterSetup?.find((setup) => setup.name === name);
       if (!clusterSetupSpec) {
         throw new Error(
@@ -61,7 +90,7 @@ export const useInstanceFormValues = (
         );
       }
       return {
-        parameters: getParameters(name, values),
+        parameters: getParameters(values, schema),
         argoSpec: clusterSetupSpec.spec,
         name: name,
       };
@@ -73,7 +102,12 @@ export const useInstanceFormValues = (
     ): InstanceParametersFormValues[] => {
       return setupStatus.reduce<InstanceParametersFormValues[]>(
         (prev: InstanceParametersFormValues[], setup) => {
-          const formValues = getPostInstallationItemFormValues(template, setup.name, setup.values);
+          const formValues = getPostInstallationItemFormValues(
+            template,
+            setup.name,
+            setup.values,
+            setup.schema,
+          );
           return formValues ? [...prev, formValues] : prev;
         },
         [],

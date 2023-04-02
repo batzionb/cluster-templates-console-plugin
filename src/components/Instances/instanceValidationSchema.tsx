@@ -22,7 +22,10 @@ const useInstanceValidationSchema = (): SchemaOf<InstanceFormValues> => {
       objectSchema().shape({
         name: stringSchema().required(requiredMsg),
         value: mixedSchema(),
-        defaultValue: mixedSchema(),
+        required: booleanSchema().required(),
+        title: stringSchema().required(),
+        description: stringSchema(),
+        type: mixedSchema(),
       }),
     );
 
