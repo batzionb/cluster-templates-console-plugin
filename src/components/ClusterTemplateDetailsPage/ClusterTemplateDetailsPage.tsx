@@ -12,7 +12,7 @@ import {
 } from '@patternfly/react-core';
 import * as React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useClusterTemplate } from '../../hooks/useClusterTemplates';
+import { useRawClusterTemplate } from '../../hooks/useClusterTemplates';
 import PageLoader from '../../helpers/PageLoader';
 import { ActionsMenu } from '../../helpers/ActionsMenu';
 import {
@@ -23,7 +23,7 @@ import {
 import { AlertsContextProvider } from '../../alerts/AlertsContext';
 import { ClusterTemplate, ClusterTemplateVendor } from '../../types/resourceTypes';
 import { clusterTemplateGVK } from '../../constants';
-import { getNavLabelWithCount } from '../../utils/utils';
+import { getBasename, getNavLabelWithCount } from '../../utils/utils';
 import { useHistory } from 'react-router';
 import { useClusterTemplateQuotasCount } from '../../hooks/useQuotas';
 import OverviewTab from './OverviewTab';
@@ -36,6 +36,7 @@ import DetailsQuotasTab from './DetailsQuotasTab';
 import DeleteDialog from '../sharedDialogs/DeleteDialog';
 import { getClusterTemplateVendor } from '../../utils/clusterTemplateDataUtils';
 import useClusterTemplateActions from '../../hooks/useClusterTemplateActions';
+import useClusterTemplateDeserializer from '../../hooks/useClusterTemplateDeserializer';
 
 const useActiveNavItem = (clusterTemplate: ClusterTemplate | undefined) => {
   const history = useHistory();
@@ -45,7 +46,7 @@ const useActiveNavItem = (clusterTemplate: ClusterTemplate | undefined) => {
   const detailsPath = getResourceDetailsPageUrl(clusterTemplateGVK, clusterTemplate);
   return detailsPath === history.location.pathname
     ? 'overview'
-    : history.location.pathname.split('/').at(-1);
+    : getBasename(history.location.pathname);
 };
 
 const PageNavigation = ({ clusterTemplate }: { clusterTemplate: ClusterTemplate }) => {
@@ -157,26 +158,38 @@ const PageHeader = ({ clusterTemplate }: { clusterTemplate: ClusterTemplate }) =
 
 const ClusterTemplateDetailsPage = ({ match }: { match: { params: { name: string } } }) => {
   const { name } = match.params;
-  const [clusterTemplate, loaded, loadError] = useClusterTemplate(name);
-  const activeNavItem = useActiveNavItem(clusterTemplate);
+  const [rawTemplate, templateLoaded, templateError] = useRawClusterTemplate(name);
+  const [deserialize, deserializeLoaded, deserializeError] = useClusterTemplateDeserializer();
+  const loaded = templateLoaded && deserializeLoaded;
+  const error = templateError || deserializeError;
+  const deserializedTemplate = React.useMemo<ClusterTemplate>(() => {
+    if (!loaded || error) {
+      return {} as ClusterTemplate;
+    }
+    return deserialize(rawTemplate);
+  }, [deserialize, error, loaded, rawTemplate]);
+
+  const activeNavItem = useActiveNavItem(deserializedTemplate);
   return (
     <ErrorBoundary>
       <AlertsContextProvider>
-        <PageLoader loaded={loaded} error={loadError}>
+        <PageLoader loaded={loaded} error={error}>
           <Page>
-            <PageHeader clusterTemplate={clusterTemplate} />
+            <PageHeader clusterTemplate={deserializedTemplate} />
             {activeNavItem !== 'yaml' && (
               <PageSection>
-                {activeNavItem === 'overview' && <OverviewTab clusterTemplate={clusterTemplate} />}
+                {activeNavItem === 'overview' && (
+                  <OverviewTab clusterTemplate={deserializedTemplate} />
+                )}
                 {activeNavItem === 'quotas' && (
-                  <DetailsQuotasTab clusterTemplate={clusterTemplate} />
+                  <DetailsQuotasTab clusterTemplate={deserializedTemplate} />
                 )}
                 {activeNavItem === 'instances' && (
-                  <InstancesTab clusterTemplate={clusterTemplate} />
+                  <InstancesTab clusterTemplate={deserializedTemplate} />
                 )}
               </PageSection>
             )}
-            {activeNavItem === 'yaml' && <ResourceYAMLEditor initialResource={clusterTemplate} />}
+            {activeNavItem === 'yaml' && <ResourceYAMLEditor initialResource={rawTemplate} />}
           </Page>
         </PageLoader>
       </AlertsContextProvider>

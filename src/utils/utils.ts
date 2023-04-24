@@ -40,3 +40,5 @@ export const getErrorMessage = (error: unknown) => {
   }
   return 'Unexpected error';
 };
+
+export const getBasename = (path?: string) => path?.split('/').at(-1);

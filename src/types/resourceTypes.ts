@@ -63,6 +63,7 @@ export type ClusterTemplateStatus = {
     schema?: string;
   };
   clusterSetup?: ClusterTemplateSetupStatus;
+  error?: string;
 };
 
 export type ClusterSetup = {
@@ -73,6 +74,7 @@ export type ClusterSetup = {
 export type ClusterTemplate = K8sResourceCommon & {
   spec: {
     cost?: number;
+    clusterDefinitionName: string;
     clusterDefinition: ArgoCDSpec;
     clusterSetup?: ClusterSetup;
   };
@@ -206,3 +208,22 @@ export type RowProps<D> = {
 };
 
 export type MetadataLabels = ObjectMetadata['labels'];
+
+export type ApplicationSet = K8sResourceCommon & {
+  spec: {
+    generators: [Record<string, unknown>];
+    template: {
+      metadata: ObjectMetadata;
+      spec: ArgoCDSpec;
+    };
+  };
+};
+
+export type RawClusterTemplate = K8sResourceCommon & {
+  spec: {
+    cost?: number;
+    clusterDefinition: string;
+    clusterSetup: string[];
+  };
+  status?: ClusterTemplateStatus;
+};

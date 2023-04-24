@@ -1,5 +1,5 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { ClusterTemplate, ClusterTemplateVendor, ApplicationSource } from '../types/resourceTypes';
+import { ClusterTemplate, ClusterTemplateVendor } from '../types/resourceTypes';
 
 const TEMPLATES_LABEL_PREFIX = 'clustertemplates.openshift.io';
 
@@ -28,11 +28,3 @@ export const isRedHatTemplate = (clusterTemplate: ClusterTemplate) =>
 
 export const getClusterTemplateDescription = (clusterTemplate?: ClusterTemplate) =>
   clusterTemplate?.metadata?.annotations?.[TEMPLATE_LABELS.description];
-
-export const isHelmAppSpec = (source: ApplicationSource) => !!source.chart;
-
-export const getClusterDefinitionHelmChart = (clusterTemplate: ClusterTemplate) =>
-  clusterTemplate.spec.clusterDefinition.source.chart;
-
-export const isHelmClusterDefinition = (clusterTemplate: ClusterTemplate) =>
-  isHelmAppSpec(clusterTemplate.spec.clusterDefinition.source);
