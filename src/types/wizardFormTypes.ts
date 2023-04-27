@@ -1,4 +1,4 @@
-import { MetadataLabels } from './resourceTypes';
+import { MetadataLabels, RepositoryType } from './resourceTypes';
 
 export enum StepId {
   DETAILS = 'details',
@@ -15,8 +15,8 @@ export type HelmSourceFormikValues = {
 
 export type GitRepoSourceFormikValues = {
   url: string;
-  commit: string;
-  directory: string;
+  commit?: string;
+  directory?: string;
 };
 
 export type DetailsFormikValues = {
@@ -37,6 +37,7 @@ export type PostInstallationFormikValues = {
   createNamespace: boolean;
   destinationNamespace?: string;
   source: GitRepoSourceFormikValues | HelmSourceFormikValues;
+  type: RepositoryType;
 };
 
 export const isHelmSource = (

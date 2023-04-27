@@ -35,6 +35,7 @@ export const getNewGitOpsFormValues = (type: RepositoryType): PostInstallationFo
           commit: '',
           directory: '',
         },
+  type,
 });
 
 export const getNewClusterTemplateFormValues = (): WizardFormikValues => {
@@ -75,6 +76,7 @@ const getPostInstallationFormValuesItem = (spec: ArgoCDSpec): PostInstallationFo
   createNamespace: spec.syncPolicy?.syncOptions
     ? spec.syncPolicy?.syncOptions.includes(CREATE_NAMESPACE_SYNC_OPTION)
     : false,
+  type: spec.source.chart ? 'helm' : 'git',
 });
 
 const getPostInstallationFormValues = (

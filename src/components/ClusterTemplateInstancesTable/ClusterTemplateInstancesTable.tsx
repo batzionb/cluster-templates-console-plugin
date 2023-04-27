@@ -7,6 +7,9 @@ import { TFunction } from 'react-i18next';
 import React from 'react';
 import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from '../../hooks/useTranslation';
+import DeleteDialog from '../sharedDialogs/DeleteDialog';
+import { Button } from '@patternfly/react-core';
+import { TrashIcon } from '@patternfly/react-icons';
 
 type TableColumn = {
   title: string;
@@ -33,8 +36,15 @@ const InstanceRow: React.FC<{
   columns: TableColumn[];
   index: number;
 }> = ({ instance, columns, index }) => {
+  const [deleteDlgOpen, setDeleteDlgOpen] = React.useState(false);
+  const [hovered, setHovered] = React.useState(false);
   return (
-    <Tr data-index={index} data-testid="cluster-template-instance-row">
+    <Tr
+      data-index={index}
+      data-testid="cluster-template-instance-row"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <Td dataLabel={columns[0].title} data-testid="name">
         <ResourceLink
           groupVersionKind={clusterTemplateInstanceGVK}
@@ -55,6 +65,21 @@ const InstanceRow: React.FC<{
       <Td dataLabel={columns[2].title} data-testid="status">
         <ClusterTemplateInstanceStatus instance={instance} />
       </Td>
+      <Td isActionCell>
+        <Button
+          icon={<TrashIcon />}
+          onClick={() => console.log('hello')}
+          variant="link"
+          style={hovered ? { padding: 'unset' } : { display: 'none', padding: 'unset' }}
+        />
+      </Td>
+      <DeleteDialog
+        isOpen={deleteDlgOpen}
+        onDelete={() => setDeleteDlgOpen(false)}
+        onCancel={() => setDeleteDlgOpen(false)}
+        gvk={clusterTemplateInstanceGVK}
+        resource={instance}
+      />
     </Tr>
   );
 };
