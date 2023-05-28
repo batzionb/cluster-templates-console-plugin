@@ -18,13 +18,13 @@ export const getClusterTemplateVendor = (
   if (!labelValue) {
     return ClusterTemplateVendor.CUSTOM;
   }
-  return labelValue === ClusterTemplateVendor.REDHAT
-    ? ClusterTemplateVendor.REDHAT
+  return labelValue === ClusterTemplateVendor.COMMUNITY
+    ? ClusterTemplateVendor.COMMUNITY
     : ClusterTemplateVendor.CUSTOM;
 };
 
 export const isRedHatTemplate = (clusterTemplate: DeserializedClusterTemplate) =>
-  getClusterTemplateVendor(clusterTemplate) === ClusterTemplateVendor.REDHAT;
+  getClusterTemplateVendor(clusterTemplate) === ClusterTemplateVendor.COMMUNITY;
 
 export const getClusterTemplateDescription = (clusterTemplate?: DeserializedClusterTemplate) =>
   clusterTemplate?.metadata?.annotations?.[TEMPLATE_LABELS.description];

@@ -47,8 +47,8 @@ export const ClusterTemplateVendorLabel = ({
   if (!vendor) {
     return <NotAvailable />;
   }
-  const color = vendor === ClusterTemplateVendor.REDHAT ? 'green' : 'purple';
-  const labelText = vendor === ClusterTemplateVendor.REDHAT ? t('Red Hat') : t('Custom');
+  const color = vendor === ClusterTemplateVendor.COMMUNITY ? 'green' : 'purple';
+  const labelText = vendor === ClusterTemplateVendor.COMMUNITY ? t('Community') : t('Custom');
   return <Label color={color}>{labelText}</Label>;
 };
 

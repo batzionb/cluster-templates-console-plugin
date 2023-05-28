@@ -3,7 +3,7 @@ import React from 'react';
 
 export enum ClusterTemplateVendor {
   CUSTOM = 'Custom',
-  REDHAT = 'RedHat',
+  COMMUNITY = 'community',
 }
 
 export type ClusterTemplateProperty = {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
+import { ResourceLink, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import { TextContent, Text, Button } from '@patternfly/react-core';
 import { ActionsColumn, Td, Th, Thead, Tr, TableComposable, Tbody } from '@patternfly/react-table';
 import { clusterTemplateGVK } from '../../constants';
@@ -59,8 +59,12 @@ function getTableColumns(t: TFunction): TableColumn[] {
       id: 'status',
     },
     {
-      title: '',
-      id: 'kebab-menu',
+      title: t('Created'),
+      id: 'created',
+    },
+    {
+      title: t(''),
+      id: 'kabab-menu',
     },
   ];
 }
@@ -74,7 +78,7 @@ export const ClusterTemplateRow: React.FC<RowProps<DeserializedClusterTemplate>>
 
   return (
     <Tr>
-      <Td data-testid={columns[0].id} dataLabel={columns[0].id}>
+      <Td dataLabel={columns[0].id}>
         <ResourceLink
           groupVersionKind={clusterTemplateGVK}
           name={obj.metadata?.name}
@@ -82,19 +86,22 @@ export const ClusterTemplateRow: React.FC<RowProps<DeserializedClusterTemplate>>
           hideIcon
         />
       </Td>
-      <Td data-testid={columns[1].id} dataLabel={columns[1].id}>
+      <Td dataLabel={columns[1].id}>
         <ClusterTemplateUsage clusterTemplate={obj} />
       </Td>
-      <Td data-testid={columns[2].id} dataLabel={columns[2].id}>
+      <Td dataLabel={columns[2].id}>
         <ClusterTemplateQuotasSummary clusterTemplate={obj} />
       </Td>
-      <Td data-testid={columns[3].id} dataLabel={columns[3].id}>
+      <Td dataLabel={columns[3].id}>
         <ClusterTemplateVendorLabel clusterTemplate={obj} />
       </Td>
-      <Td data-testid={columns[4].id} dataLabel={columns[4].id}>
+      <Td dataLabel={columns[4].id}>
         <ClusterTemplateStatus clusterTemplate={obj} />
       </Td>
-      <Td data-testid={columns[5].id} isActionCell>
+      <Td dataLabel={columns[5].id}>
+        <Timestamp timestamp={obj.metadata?.creationTimestamp || ''} />
+      </Td>
+      <Td isActionCell>
         <ActionsColumn items={actions} />
       </Td>
       {isDeleteOpen && (

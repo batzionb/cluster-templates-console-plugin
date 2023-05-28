@@ -114,7 +114,7 @@ const PageHeader = ({ clusterTemplate }: { clusterTemplate: DeserializedClusterT
   const { t } = useTranslation();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const isRedhatTemplate =
-    getClusterTemplateVendor(clusterTemplate) === ClusterTemplateVendor.REDHAT;
+    getClusterTemplateVendor(clusterTemplate) === ClusterTemplateVendor.COMMUNITY;
   const actions = useClusterTemplateActions(clusterTemplate, () => setDeleteDialogOpen(true));
   return (
     <>

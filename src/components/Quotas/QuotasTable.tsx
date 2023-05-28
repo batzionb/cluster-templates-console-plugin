@@ -10,7 +10,7 @@ import {
 } from '@patternfly/react-table';
 import { TFunction } from 'i18next';
 import React from 'react';
-import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
+import { ResourceLink, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import { clusterTemplateQuotaGVK, namespaceGVK } from '../../constants';
 
 import { useTranslation } from '../../hooks/useTranslation';
@@ -101,7 +101,12 @@ const getTableColumns = (t: TFunction, clusterTemplate?: ClusterTemplate): Table
   const lastColumn = clusterTemplate
     ? getClusterTemplateInstancesStatusColumn(t, clusterTemplate)
     : getTemplatesColumn(t);
-  return [...columns, lastColumn];
+  const timestampColumn: TableColumn = {
+    title: t('Created'),
+    id: 'created',
+    getContent: (quota: Quota) => <Timestamp timestamp={quota.metadata?.creationTimestamp || ''} />,
+  };
+  return [...columns, timestampColumn, lastColumn];
 };
 
 const QuotaRow: React.FC<{
