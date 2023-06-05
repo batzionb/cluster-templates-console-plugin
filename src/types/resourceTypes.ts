@@ -197,7 +197,7 @@ export type ArgoCDSecretData = {
   tlsClientCertData?: string;
   tlsClientCertKey?: string;
   type?: RepositoryType;
-  insecure?: boolean;
+  insecure?: string;
 };
 
 export type ConfigMap = {

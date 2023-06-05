@@ -26,6 +26,10 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { getErrorMessage } from '../../utils/utils';
 import { nameValidationMessages } from '../../utils/commonValidationSchemas';
 import RichInputField from '../../helpers/RichInputField';
+import CertificateAuthorityField from './CertificateAuthorityField';
+import { AlertsContextProvider } from '../../alerts/AlertsContext';
+import Alerts from '../../alerts/Alerts';
+import { useCertificatesAutorityMap } from '../../hooks/useArgoCDSecrets';
 
 type RepositoryFormProps = FormikProps<RepositoryFormValues> & {
   argoCDSecret?: DecodedSecret<ArgoCDSecretData>;
@@ -79,8 +83,9 @@ const RepositoryForm = ({
   const { errors, values, isSubmitting, handleSubmit, setFieldValue } = formikProps;
   const urlInputRef = React.useRef<HTMLInputElement>(null);
   const hasTemplates = !!templatesFromRepo?.length;
+  const useCertificatesAutorityMapResult = useCertificatesAutorityMap();
   return (
-    <>
+    <AlertsContextProvider>
       <ModalBoxBody>
         <Form data-testid="repository-form" onSubmit={handleSubmit}>
           {!predefinedType && <TypeField />}
@@ -122,6 +127,9 @@ const RepositoryForm = ({
                 : undefined
             }
           />
+          <CertificateAuthorityField
+            useCertificatesAutorityMapResult={useCertificatesAutorityMapResult}
+          />
           <CheckboxField
             fieldId="useCredentials"
             name="useCredentials"
@@ -148,7 +156,7 @@ const RepositoryForm = ({
               />
             </>
           )}
-
+          <Alerts />
           {submitError && (
             <Alert variant={AlertVariant.danger} title={t('Failed to save repository')} isInline>
               {getErrorMessage(submitError)}
@@ -163,13 +171,13 @@ const RepositoryForm = ({
           isDisabled={isSubmitting}
           isLoading={isSubmitting}
         >
-          {t('Submit')}
+          {argoCDSecret ? t('Save') : t('Add')}
         </Button>
         <Button onClick={() => closeDialog()} variant={ButtonVariant.link}>
           {t('Cancel')}
         </Button>
       </ModalBoxFooter>
-    </>
+    </AlertsContextProvider>
   );
 };
 

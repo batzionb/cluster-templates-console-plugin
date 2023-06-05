@@ -7,6 +7,9 @@ import { RepositoriesContext } from '../contexts/helmRepositoriesContext';
 const HELM_REPOSITORIES_ENDPOINT =
   '/api/proxy/plugin/clustertemplates-plugin/repositories/api/helm-repositories';
 
+const GIT_REPOSITORIES_ENDPOINT =
+  '/api/proxy/plugin/clustertemplates-plugin/repositories/api/git-repositories';
+
 export type HelmChartRepositoryListResult = {
   repos: HelmRepository[];
   loaded: boolean;
@@ -21,6 +24,8 @@ export const useHelmChartRepositories = (): HelmChartRepositoryListResult & {
     setRepoListResult({ repos: [], loaded: false, error: null });
     try {
       const res = await consoleFetch(HELM_REPOSITORIES_ENDPOINT);
+      const res1 = await consoleFetch(GIT_REPOSITORIES_ENDPOINT);
+      console.log(res1);
       const yaml = await res.text();
       const repos = load(yaml) as HelmRepository[];
       setRepoListResult({ repos, loaded: true, error: null });

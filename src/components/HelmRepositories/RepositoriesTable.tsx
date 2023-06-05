@@ -188,6 +188,9 @@ export const RepositoryRow = ({ obj, helmChartRepositoriesResult }: RepositoryRo
 
 const RepositoriesTable = ({ secrets }: { secrets: DecodedSecret<ArgoCDSecretData>[] }) => {
   const helmChartRepositoriesResult = useHelmChartRepositories();
+  React.useEffect(() => {
+    console.log(secrets);
+  }, [secrets]);
   // t('Failed to load Helm repositories information')
   useAddAlertOnError(
     helmChartRepositoriesResult.error,

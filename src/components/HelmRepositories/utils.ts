@@ -23,3 +23,5 @@ export const getDefaultSecretName = (helmChartRepositoryName?: string) =>
   `${helmChartRepositoryName || 'unknown'}-tls-configs`;
 export const getDefaultConfigMapName = (helmChartRepositoryName?: string) =>
   `${helmChartRepositoryName || 'unknown'}-ca-certificate`;
+
+export const getUrlHostname = (url: string) => new URL(url).hostname;
