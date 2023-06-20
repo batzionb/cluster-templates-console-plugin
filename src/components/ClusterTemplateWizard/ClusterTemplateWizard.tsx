@@ -30,7 +30,7 @@ import ConfirmCancelModal from './ConfirmCancelModal';
 import { useSaveClusterTemplate } from '../../hooks/useSaveClusterTemplate';
 import { DeserializedClusterTemplate } from '../../types/resourceTypes';
 import { StepId, WizardFormikValues } from '../../types/wizardFormTypes';
-
+import { getRichTextValidation } from '../../utils/commonValidationSchemas';
 export type ClusterTemplateWizardProps = {
   clusterTemplate?: DeserializedClusterTemplate;
 };
@@ -183,8 +183,9 @@ const _ClusterTemplateWizard = ({ clusterTemplate }: ClusterTemplateWizardProps)
         <Formik<WizardFormikValues>
           initialValues={initialValues}
           onSubmit={onSubmit}
-          validationSchema={validationSchema}
           validateOnMount
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          validate={getRichTextValidation<any>(validationSchema)}
         >
           <Wizard
             steps={steps}

@@ -1,5 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TFunction } from 'i18next';
-import { number as numberSchema, string as stringSchema } from 'yup';
+import { number as numberSchema, string as stringSchema, ObjectSchema } from 'yup';
+import pickBy from 'lodash/pickBy';
+import groupBy from 'lodash/groupBy';
+import set from 'lodash/set';
+import { ObjectShape } from 'yup/lib/object';
+import Lazy from 'yup/lib/Lazy';
 
 const MAX_COST = 1000000;
 
@@ -14,10 +20,64 @@ export const integerSchema = (t: TFunction) => {
 export const positiveIntegerSchema = (t: TFunction) =>
   integerSchema(t).min(0, t('Please enter a positive value'));
 
-//support validation for DNS Subdomain Names for most CRs and RFC 1123 Label Names for namespaces
-//More info in https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
+type InnerError = { path: string; message: string };
+type InnerErrors = { inner: InnerError[] };
+type FieldErrors = { [key: string]: string[] };
 
-const NAME_START_END_REGEX = /^[a-z0-9]$/;
+const fieldErrorReducer = (errors: InnerError[]): FieldErrors => {
+  return errors.reduce<FieldErrors>(
+    (memo, { path, message }) => ({
+      ...memo,
+      [path]: (memo[path] || []).concat(message),
+    }),
+    {},
+  );
+};
+
+export const getDuplicates = (list: string[]): string[] => {
+  const duplicateKeys = pickBy(groupBy(list), (x) => x.length > 1);
+  return Object.keys(duplicateKeys);
+};
+
+export const getRichTextValidation =
+  <T extends ObjectShape>(schema: ObjectSchema<T> | Lazy<any>) =>
+  async (values: T): Promise<FieldErrors | undefined> => {
+    try {
+      await schema.validate(values, {
+        abortEarly: false,
+      });
+    } catch (e) {
+      const { inner } = e as InnerErrors;
+      if (!inner || inner.length === 0) {
+        return {};
+      }
+
+      const baseFields: InnerError[] = [];
+      const arraySubfields: InnerError[] = [];
+
+      inner.forEach((item) => {
+        const isArraySubfield = /\.|\[/.test(item.path);
+        if (isArraySubfield) {
+          arraySubfields.push(item);
+        } else {
+          baseFields.push(item);
+        }
+      });
+
+      const fieldErrors = fieldErrorReducer(baseFields);
+      if (arraySubfields.length === 0) {
+        return fieldErrors;
+      }
+
+      // Now we need to convert the fieldArray errors to the parent object
+      // eg. items[0].thumbprint --> { items: [{ thumbprint: ['subField error'] }]}
+      const arrayErrors = {};
+      arraySubfields.forEach((field) => {
+        set(arrayErrors, field.path, [field.message]);
+      });
+      return { ...fieldErrors, ...arrayErrors };
+    }
+  };
 
 export enum NameValidationType {
   DNS_SUBDOMAIN = 0,
@@ -47,7 +107,7 @@ export const nameValidationMessages = (
       : t('Use lowercase alphanumeric characters, or hyphen (-)'),
   INVALID_START_END: t('Must start and end with an lowercase alphanumeric character'),
 });
-
+const CLUSTER_NAME_START_END_REGEX = /^[a-z0-9](.*[a-z0-9])?$/;
 export const nameSchema = (
   t: TFunction,
   usedNames: string[] = [],
@@ -57,24 +117,12 @@ export const nameSchema = (
   return stringSchema()
     .min(1, nameValidationMessagesList.INVALID_LENGTH)
     .max(nameValidationData[type].maxLength, nameValidationMessagesList.INVALID_LENGTH)
-    .test(
-      nameValidationMessagesList.INVALID_START_END,
-      nameValidationMessagesList.INVALID_START_END,
-      (value?: string) => {
-        const trimmed = value?.trim();
-        if (!trimmed) {
-          return true;
-        }
-        return (
-          !!trimmed[0].match(NAME_START_END_REGEX) &&
-          (trimmed[trimmed.length - 1]
-            ? !!trimmed[trimmed.length - 1].match(NAME_START_END_REGEX)
-            : true)
-        );
-      },
-    )
     .matches(nameValidationData[type].regex, {
       message: nameValidationMessagesList.INVALID_VALUE,
+      excludeEmptyString: true,
+    })
+    .matches(CLUSTER_NAME_START_END_REGEX, {
+      message: nameValidationMessagesList.INVALID_START_END,
       excludeEmptyString: true,
     })
     .test(nameValidationMessagesList.NOT_UNIQUE, nameValidationMessagesList.NOT_UNIQUE, (value) => {

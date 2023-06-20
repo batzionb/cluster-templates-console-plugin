@@ -6,7 +6,15 @@ import { SchemaOf } from 'yup';
 import { nameSchema } from '../../utils/commonValidationSchemas';
 import * as yup from 'yup';
 import NameField from './NameField';
-import { Form } from '@patternfly/react-core';
+import { Form, SelectPosition } from '@patternfly/react-core';
+import { userEvent, within, screen } from '@storybook/testing-library';
+import { expect } from '@storybook/jest';
+import { getRichTextValidation } from '../../utils/commonValidationSchemas';
+
+// Function to emulate pausing between interactions
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 const NameFieldWrapper = ({ initialName }: { initialName: string }) => {
   const tFunction: TFunction = (text: string) => text;
@@ -20,8 +28,9 @@ const NameFieldWrapper = ({ initialName }: { initialName: string }) => {
       initialValues={{ name: initialName }}
       onSubmit={(values) => console.log(values)}
       validateOnMount
-      validationSchema={validationSchema}
       initialTouched={{ name: true }}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      validate={getRichTextValidation<any>(validationSchema)}
     >
       <Form>
         <NameField name="name" label="name" />
@@ -40,7 +49,7 @@ type Story = StoryObj<typeof NameFieldWrapper>;
 
 export const ValidName: Story = {
   args: {
-    initialName: 'valid-name',
+    initialName: '',
   },
 };
 
@@ -52,6 +61,30 @@ export const InvalidFirstChar: Story = {
 
 export const InvalidCharacters: Story = {
   args: {
-    initialName: 'blabla',
+    initialName: '',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    const nameField = canvas.getByRole('textbox', { name: /name/ });
+    console.log(nameField);
+    await userEvent.type(nameField, '&&&aaa', {
+      delay: 100,
+    });
+    const popover = screen.getByTestId('validation-popover');
+
+    const popoverElement = within(popover);
+
+    await expect(
+      popoverElement.getByRole('alert', {
+        name: /must start and end with an lowercase alphanumeric character/i,
+      }),
+    ).toBeTruthy();
+    console.log(111);
+    await expect(
+      popoverElement.getByRole('alert', {
+        name: 'Use lowercase alphanumeric characters, dot (.) or hyphen (-)',
+      }),
+    ).toBeTruthy();
   },
 };

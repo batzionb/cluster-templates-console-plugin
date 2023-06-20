@@ -37,6 +37,7 @@ const getHelperTextVariant = (
   variant: HelperTextItemProps['variant'];
   icon?: HelperTextItemProps['icon'];
 } => {
+  console.log(errors);
   if (!value) {
     return { variant: 'indeterminate' };
   } else if (errors?.includes(validationMessage)) {
@@ -63,7 +64,12 @@ export const RichValidation: React.FC<RichValidationProps> = ({
         const variant = getHelperTextVariant(richValidationMessages[key], value, error);
         return (
           <HelperTextItem key={key} isDynamic component="li" {...variant}>
-            {richValidationMessages[key]}
+            <span
+              aria-label={richValidationMessages[key]}
+              role={variant.variant === 'error' ? 'alert' : undefined}
+            >
+              {richValidationMessages[key]}
+            </span>
           </HelperTextItem>
         );
       })}
@@ -146,6 +152,7 @@ const RichInputField = React.forwardRef(
               shouldOpen={() => setPopoverOpen(true)}
               aria-label="validation popover"
               position={PopoverPosition.top}
+              data-testid="validation-popover"
               bodyContent={
                 <RichValidation
                   value={value}
